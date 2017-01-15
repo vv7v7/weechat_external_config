@@ -1,7 +1,5 @@
-# weechat_external_config
-A script for WeeChat which gives you a possibility to download and use your config file from external resource.
-
-# This script is created use external config file for WeeChat IRC CLient.
+# WEC WeeChat External Config loader
+_WEC_ is a script for WeeChat which gives you a possibility to use WeeChat with external **irc.conf**.
 
 Author: **V7**
 Current version: 1.0
