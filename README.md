@@ -2,6 +2,7 @@
 _WEC_ is a script for WeeChat which gives you a possibility to use WeeChat with external **irc.conf**.
 
 Author: **V7**
+
 Current version: 1.0
 
 To use external irc.conf file you should cipher it and upload to external path.
