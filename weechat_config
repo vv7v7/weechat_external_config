@@ -1,0 +1,212 @@
+#!/bin/bash
+
+version="1.0"
+
+#################################################################
+#																#				
+# 				  		ENCODING: UTF-8		 				 	#
+# This program is free software: you can redistribute it and/or #
+# modify it under the terms of the GNU General Public License 	#
+# as published by the Free Software Foundation, either version 	#
+# 3 of the License, or (at your option) any later version.		#
+#																#
+# This program is distributed in the hope that it will be 		#
+# useful, but WITHOUT ANY WARRANTY; without even the implied 	#
+# warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 		#
+# PURPOSE.  See the GNU General Public License for more 		#
+# details.														#
+#																#
+# You should have received a copy of the GNU General Public 	#
+# License along with this program.  							#
+# If not, see http://www.gnu.org/licenses						#
+#																#
+# If you make any changes to this application, 					#
+# You should always mention the original author of it. 			#
+#																#
+# Author: Script created by V7 									#
+#																#
+# I'm not anti-social; I'm just not user friendly 				#
+#																#
+#################################################################
+
+#Colors
+white="\033[1;37m"
+grey="\033[0;37m"
+magenta="\033[0;35m"
+red="\033[1;31m"
+green="\033[1;32m"
+yellow="\033[1;33m"
+blue="\033[1;34m"
+resetcolor="\e[0m"
+
+DUMP_DIR="/tmp/WeeChatConfig"
+DUMP_FILE="irc.conf.crypted"
+WEECHATDIR=$HOME"/.weechat"
+
+URL="http://server.bar/folder"
+CONFIGURL=$URL"/irc.conf.crypted"
+
+# Uncomment if you use "Basic" authorization in HTTP request
+#
+# HTTPUSER="httpuser"
+# HTTPPASS="httppassword"
+# AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
+
+quest="[?] "
+warn="[!] "
+bad="[-] "
+ok="[+] "
+
+###################################################################################################################################
+
+trap ExitScript SIGINT
+
+function DeleteDumpFile {
+	if [ -f $DUMP_DIR"/"$DUMP_FILE ]; then
+		echo ""
+		echo -e " "$warn$yellow"Removing temp config file"$resetcolor
+		rm -f $DUMP_DIR"/"$DUMP_FILE
+	fi
+	if [ -d $DUMP_DIR ]; then
+		echo -e " "$warn$yellow"Removing \"temp\" directory"$resetcolor
+		rm -rf $DUMP_DIR
+	fi
+}
+
+function ExitScript {
+	stty echo
+	DeleteDumpFile
+	echo ""
+	exit
+}
+
+function DownloadConfig {
+	echo -e " "$warn$magenta"Downloading script from $CONFIGURL"$resetcolor
+	WGETR=$( wget $CONFIGURL --show-progress $AUTH -O $DUMP_DIR"/"$DUMP_FILE 2>&1 )
+
+	# Uncomment if you want to check output from wGet
+	#
+	# echo $WGETR 
+
+	if [[ ! $WGETR == *"OK"* ]]; then
+	    echo -e " "$bad$red"Download failed"$resetcolor
+	    ExitScript
+	else
+		echo -e " "$ok$green"Successfully downloaded config file"$resetcolor
+	fi
+	echo ""
+}
+
+function DecryptConfig {
+	RESULT=$( openssl aes-256-cbc -d -salt -in $DUMP_DIR"/"$DUMP_FILE -out $WEECHATDIR"/"irc.conf 2>&1 )
+	if [[ $RESULT == *"bad decrypt"* ]]; then
+		echo ""
+ 		echo  -e " "$bad$red"Wrong OpenSSL AES-256-CBC Password for encrypted config file"$resetcolor
+ 		ExitScript
+	fi
+	DeleteDumpFile
+	echo ""
+}
+
+function EncryptConfig {
+	NL="\n"
+	if [ ! -f $WEECHATDIR"/"irc.conf ]; then
+		echo -e " "$bad$red"Original WeeChat config file doesn't exist"$resetcolor
+		ExitScript
+	else
+		echo -en " "$quest$magenta"OpenSSL AES-256-CBC Password: "$resetcolor
+		# stty -echo
+		read opensslpass
+		# stty echo
+		if [ -f $DUMP_FILE ]; then
+			echo -e "\n "$bad$yellow"File "$blue"$DUMP_FILE"$yellow" exists. Removing ..."$resetcolor
+			rm -rf $DUMP_FILE
+			NL=""
+		fi
+		openssl aes-256-cbc -salt -in $WEECHATDIR"/"irc.conf -out $DUMP_FILE -k $opensslpass
+		if [ -f $DUMP_FILE ]; then
+			echo -e "$NL "$bad$green"File "$blue"$DUMP_FILE"$green" successfully created"$resetcolor
+			ExitScript
+		else
+			echo -e "$NL "$bad$red"File "$blue"$DUMP_FILE"$red" creation failed"$resetcolor
+			ExitScript
+		fi	
+		ExitScript
+	fi
+}
+
+function CheckWeeChat {
+	echo -ne " "$ok"WeeChat "
+	if ! hash weechat 2>/dev/null; then
+		echo -e $red"Not installed"$resetcolor
+		ExitScript
+	else
+		echo -e $green"Installed"$resetcolor
+		if [ ! -d "$WEECHATDIR" ]; then
+			echo -e " "$bad$red"WeeChat user directory doesn't exist ..."$resetcolor
+    		ExitScript
+		fi
+	fi
+}
+
+function Logo {
+
+echo ""
+echo "	 
+	 █     █░▓█████ ▓█████  ▄████▄   ██░ ██  ▄▄▄     ▄▄▄█████▓
+	▓█░ █ ░█░▓█   ▀ ▓█   ▀ ▒██▀ ▀█  ▓██░ ██▒▒████▄   ▓  ██▒ ▓▒
+	▒█░ █ ░█ ▒███   ▒███   ▒▓█    ▄ ▒██▀▀██░▒██  ▀█▄ ▒ ▓██░ ▒░
+	░█░ █ ░█ ▒▓█  ▄ ▒▓█  ▄ ▒▓▓▄ ▄██▒░▓█ ░██ ░██▄▄▄▄██░ ▓██▓ ░ 
+	░░██▒██▓ ░▒████▒░▒████▒▒ ▓███▀ ░░▓█▒░██▓ ▓█   ▓██▒ ▒██▒ ░ 
+	░ ▓░▒ ▒  ░░ ▒░ ░░░ ▒░ ░░ ░▒ ▒  ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒ ░░   
+	  ▒ ░ ░   ░ ░  ░ ░ ░  ░  ░  ▒    ▒ ░▒░ ░  ▒   ▒▒ ░   ░    
+	  ░   ░     ░      ░   ░         ░  ░░ ░  ░   ▒    ░      
+	    ░       ░  ░   ░  ░░ ░       ░  ░  ░      ░  ░        
+	                       ░                                  "
+echo ""
+echo -e "		    WeeChat "$magenta"Startup "$red"Script "$yellow"v$version"$blue" by V7"$resetcolor
+echo ""
+
+}
+
+###################################################################################################################################
+
+clear
+Logo
+CheckWeeChat
+
+for ARG in "$1"; do
+    case $ARG in
+    	-e|--encrypt) EncryptConfig;;
+    esac
+done
+
+if [ ! -d $DUMP_DIR ]; then
+	mkdir $DUMP_DIR
+fi
+
+if [ ! -f $DUMP_DIR"/"$DUMP_FILE ]; then
+	DownloadConfig
+else 
+	echo -e " "$ok$green"Encrypted config file exists. Deleting ..."$resetcolor
+	DeleteDumpFile
+	DownloadConfig
+fi
+
+DecryptConfig
+
+###################################################################################################################################
+
+echo -e " "$warn$magenta"Starting WeeChat"$resetcolor
+weechat
+echo -e " "$warn$magenta"WeeChat has been closed"$resetcolor
+echo ""
+
+###################################################################################################################################
+
+if [ -f $WEECHATDIR"/"irc.conf ]; then
+	echo -e " "$warn$yellow"Removing original config file"$resetcolor
+	rm -f $WEECHATDIR"/"irc.conf
+fi	
+
+ExitScript
