@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version="1.0"
+version="1.1"
 
 #################################################################
 #								#
@@ -42,20 +42,21 @@ resetcolor="\e[0m"
 DUMP_DIR="/tmp/WeeChatConfig"
 DUMP_FILE="irc.conf.crypted"
 WEECHATDIR=$HOME"/.weechat"
-
-URL="http://server.bar/folder"
-CONFIGURL=$URL"/irc.conf.crypted"
-
-# Uncomment if you use "Basic" authorization in HTTP request
-#
-# HTTPUSER="httpuser"
-# HTTPPASS="httppassword"
-# AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
+AUTH=""
+HTTPAuthorization=""
+HTTPURLRequest=""
 
 quest="[?] "
 warn="[!] "
 bad="[-] "
 ok="[+] "
+
+# Uncomment if you want to use Basic HTTP Authorization method
+HTTPAuthorization="Y"
+
+CONFIGURL=""
+HTTPUSER=""
+HTTPPASS=""
 
 ###################################################################################################################################
 
@@ -80,8 +81,44 @@ function ExitScript {
 	exit
 }
 
+function HTTPAuth {
+	echo -e " "$ok$yellow"Using HTTP Basic authorization method"$resetcolor
+	if [[ $HTTPUSER == "" ]]; then
+		echo -en " "$quest$magenta"Enter HTTP username: "$resetcolor
+		stty -echo
+			read HTTPUSER
+		stty echo
+	else 
+		echo -e " "$quest$magenta"Using preconfigured HTTP username"$resetcolor
+	fi
+	if [[ $HTTPPASS == "" ]]; then
+		echo -en "\n "$quest$magenta"Enter HTTP password: "$resetcolor
+		stty -echo
+			read HTTPPASS
+		stty echo
+	else 
+		echo -e " "$quest$magenta"Using preconfigured HTTP password"$resetcolor
+	fi
+	AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
+}
+
+function HTTPURL {
+	if [[ $CONFIGURL == "" ]]; then
+		echo -en " "$warn$magenta"Enter external path ( \"http://server.bar/path/irc.conf.crypted\" ): "$resetcolor
+		read CONFIGURL
+	else 
+		echo -e " "$quest$magenta"Using preconfigured HTTP username"$resetcolor
+	fi
+}	
+
 function DownloadConfig {
+	HTTPURL
 	echo -e " "$warn$magenta"Downloading script from $CONFIGURL"$resetcolor
+
+	if [[ $HTTPAuthorization == "Y" ]]; then
+		HTTPAuth
+	fi
+
 	WGETR=$( wget $CONFIGURL --show-progress $AUTH -O $DUMP_DIR"/"$DUMP_FILE 2>&1 )
 
 	# Uncomment if you want to check output from wGet
@@ -89,10 +126,10 @@ function DownloadConfig {
 	# echo $WGETR 
 
 	if [[ ! $WGETR == *"OK"* ]]; then
-	    echo -e " "$bad$red"Download failed"$resetcolor
+	    echo -e "\n "$bad$red"Download failed"$resetcolor
 	    ExitScript
 	else
-		echo -e " "$ok$green"Successfully downloaded config file"$resetcolor
+		echo -e "\n "$ok$green"Successfully downloaded config file"$resetcolor
 	fi
 	echo ""
 }
@@ -114,10 +151,12 @@ function EncryptConfig {
 		echo -e " "$bad$red"Original WeeChat config file doesn't exist"$resetcolor
 		ExitScript
 	else
+
 		echo -en " "$quest$magenta"OpenSSL AES-256-CBC Password: "$resetcolor
-		# stty -echo
+		stty -echo
 		read opensslpass
-		# stty echo
+		stty echo
+
 		if [ -f $DUMP_FILE ]; then
 			echo -e "\n "$bad$yellow"File "$blue"$DUMP_FILE"$yellow" exists. Removing ..."$resetcolor
 			rm -rf $DUMP_FILE
@@ -152,19 +191,19 @@ function CheckWeeChat {
 function Logo {
 
 echo ""
-echo "	 
-	 █     █░▓█████ ▓█████  ▄████▄   ██░ ██  ▄▄▄     ▄▄▄█████▓
-	▓█░ █ ░█░▓█   ▀ ▓█   ▀ ▒██▀ ▀█  ▓██░ ██▒▒████▄   ▓  ██▒ ▓▒
-	▒█░ █ ░█ ▒███   ▒███   ▒▓█    ▄ ▒██▀▀██░▒██  ▀█▄ ▒ ▓██░ ▒░
-	░█░ █ ░█ ▒▓█  ▄ ▒▓█  ▄ ▒▓▓▄ ▄██▒░▓█ ░██ ░██▄▄▄▄██░ ▓██▓ ░ 
-	░░██▒██▓ ░▒████▒░▒████▒▒ ▓███▀ ░░▓█▒░██▓ ▓█   ▓██▒ ▒██▒ ░ 
-	░ ▓░▒ ▒  ░░ ▒░ ░░░ ▒░ ░░ ░▒ ▒  ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒ ░░   
-	  ▒ ░ ░   ░ ░  ░ ░ ░  ░  ░  ▒    ▒ ░▒░ ░  ▒   ▒▒ ░   ░    
-	  ░   ░     ░      ░   ░         ░  ░░ ░  ░   ▒    ░      
-	    ░       ░  ░   ░  ░░ ░       ░  ░  ░      ░  ░        
-	                       ░                                  "
 echo ""
-echo -e "		    WeeChat "$magenta"Startup "$red"Script "$yellow"v$version"$blue" by V7"$resetcolor
+echo -e "\e[38;05;23m    █     █░▓█████ ▓█████  ▄████▄   ██░ ██  ▄▄▄     ▄▄▄█████▓"$resetcolor; sleep 0.1;
+echo -e "\e[38;05;24m   ▓█░ █ ░█░▓█   ▀ ▓█   ▀ ▒██▀ ▀█  ▓██░ ██▒▒████▄   ▓  ██▒ ▓▒"$resetcolor; sleep 0.09;
+echo -e "\e[38;05;25m   ▒█░ █ ░█ ▒███   ▒███   ▒▓█    ▄ ▒██▀▀██░▒██  ▀█▄ ▒ ▓██░ ▒░"$resetcolor; sleep 0.08;
+echo -e "\e[38;05;26m   ░█░ █ ░█ ▒▓█  ▄ ▒▓█  ▄ ▒▓▓▄ ▄██▒░▓█ ░██ ░██▄▄▄▄██░ ▓██▓ ░ "$resetcolor; sleep 0.07;
+echo -e "\e[38;05;27m   ░░██▒██▓ ░▒████▒░▒████▒▒ ▓███▀ ░░▓█▒░██▓ ▓█   ▓██▒ ▒██▒ ░ "$resetcolor; sleep 0.06;
+echo -e "\e[38;05;27m   ░ ▓░▒ ▒  ░░ ▒░ ░░░ ▒░ ░░ ░▒ ▒  ░ ▒ ░░▒░▒ ▒▒   ▓▒█░ ▒ ░░   "$resetcolor; sleep 0.05;
+echo -e "\e[38;05;26m     ▒ ░ ░   ░ ░  ░ ░ ░  ░  ░  ▒    ▒ ░▒░ ░  ▒   ▒▒ ░   ░    "$resetcolor; sleep 0.04;
+echo -e "\e[38;05;25m     ░   ░     ░      ░   ░         ░  ░░ ░  ░   ▒    ░      "$resetcolor; sleep 0.03;
+echo -e "\e[38;05;25m       ░       ░  ░   ░  ░░ ░       ░  ░  ░      ░  ░        "$resetcolor; sleep 0.02;
+echo -e "\e[38;05;20m                          ░                                  "$resetcolor; sleep 0.01;
+echo -e ""; sleep 0.4;
+echo -e "              WeeChat "$magenta"Startup "$red"Script "$yellow"v$version"$blue" by V7"$resetcolor
 echo ""
 
 }
