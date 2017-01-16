@@ -52,11 +52,13 @@ bad="[-] "
 ok="[+] "
 
 # Uncomment if you want to use Basic HTTP Authorization method
-# HTTPAuthorization="Y"
+HTTPAuthorization="Y"
 
 CONFIGURL=""
 HTTPUSER=""
 HTTPPASS=""
+
+AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
 
 ###################################################################################################################################
 
@@ -92,14 +94,13 @@ function HTTPAuth {
 		echo -e " "$quest$magenta"Using preconfigured HTTP username"$resetcolor
 	fi
 	if [[ $HTTPPASS == "" ]]; then
-		echo -en "\n "$quest$magenta"Enter HTTP password: "$resetcolor
+		echo -en "\n "$quest$magenta"Enter HTTP password: "$resetcoqlor
 		stty -echo
 			read HTTPPASS
 		stty echo
 	else 
 		echo -e " "$quest$magenta"Using preconfigured HTTP password"$resetcolor
 	fi
-	AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
 }
 
 function HTTPURL {
