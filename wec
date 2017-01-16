@@ -94,7 +94,7 @@ function HTTPAuth {
 		echo -e " "$quest$magenta"Using preconfigured HTTP username"$resetcolor
 	fi
 	if [[ $HTTPPASS == "" ]]; then
-		echo -en "\n "$quest$magenta"Enter HTTP password: "$resetcoqlor
+		echo -en "\n "$quest$magenta"Enter HTTP password: "$resetcolor
 		stty -echo
 			read HTTPPASS
 		stty echo
