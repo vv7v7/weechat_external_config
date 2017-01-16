@@ -52,7 +52,7 @@ bad="[-] "
 ok="[+] "
 
 # Uncomment if you want to use Basic HTTP Authorization method
-HTTPAuthorization="Y"
+# HTTPAuthorization="Y"
 
 CONFIGURL=""
 HTTPUSER=""
