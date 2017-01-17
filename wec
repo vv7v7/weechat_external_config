@@ -29,27 +29,30 @@ version="1.1"
 #								#
 #################################################################
 
-#Colors
-white="\033[1;37m"
-grey="\033[0;37m"
+# Colors
 magenta="\033[0;35m"
-red="\033[1;31m"
-green="\033[1;32m"
 yellow="\033[1;33m"
-blue="\033[1;34m"
 resetcolor="\e[0m"
+white="\033[1;37m"
+green="\033[1;32m"
+grey="\033[0;37m"
+blue="\033[1;34m"
+red="\033[1;31m"
 
+# Defaults
 DUMP_DIR="/tmp/WeeChatConfig"
-DUMP_FILE="irc.conf.crypted"
 WEECHATDIR=$HOME"/.weechat"
-AUTH=""
 HTTPAuthorization=""
 HTTPURLRequest=""
-
+AUTH=""
 quest="[?] "
 warn="[!] "
 bad="[-] "
 ok="[+] "
+
+# Default name of ciphered irc.conf file
+
+DUMP_FILE="irc.conf.crypted"
 
 # Uncomment if you want to use Basic HTTP Authorization method
 # HTTPAuthorization="Y"
@@ -57,8 +60,6 @@ ok="[+] "
 CONFIGURL=""
 HTTPUSER=""
 HTTPPASS=""
-
-AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
 
 ###################################################################################################################################
 
@@ -84,6 +85,7 @@ function ExitScript {
 }
 
 function HTTPAuth {
+	AUTH="--http-user=$HTTPUSER --http-password=$HTTPPASS"
 	echo -e " "$ok$yellow"Using HTTP Basic authorization method"$resetcolor
 	if [[ $HTTPUSER == "" ]]; then
 		echo -en " "$quest$magenta"Enter HTTP username: "$resetcolor
